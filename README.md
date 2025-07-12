@@ -76,16 +76,4 @@ stackit-qna-platform/
 ├── .prettierrc       # Code style
 └── README.md
 ````
-Backend:- 
-bash
-Copy
-Edit
-cd backend
-npm install
-cp .env.example .env  # Update with your DB and JWT config
-npm run dev
-
-then frontend:-
-cd frontend
-npm install
-npm run dev
+in order to run the project you just need to run the html file called fullproj.html as we have combined the entire project there
