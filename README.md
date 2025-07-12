@@ -40,40 +40,7 @@ email- shreyauttam97@gmail.com
 - Profile page with questions, answers, and stats
 - Admin panel for managing content and users
 
----
 
-## 🧑‍💻 Tech Stack
-
-### Frontend
-- **React.js** + React Router
-- **Quill.js** (Rich text editor)
-- **Axios** (API communication)
-- **Context API** (Global state)
-- **TailwindCSS / Custom CSS** (UI Styling)
-
-### Backend
-- **Node.js + Express**
-- **MongoDB + Mongoose** (Schema-based DB)
-- **JWT + Bcrypt** (Auth)
-- **Socket.IO** (Real-time notifications)
-- **Cloudinary** (Image upload)
-
-### Dev Tools
-- ESLint + Prettier (Code formatting)
-- Vercel & Render (Deployment)
-- Git + GitHub (Version control)
-
----
-
-## 📦 Folder Structure
-
-```bash
-stackit-qna-platform/
-├── backend/          # Express API, controllers, models, routes, utils
-├── frontend/         # React app with pages, components, services
-├── .env              # Environment variables
-├── .eslintrc.js      # Linter config
-├── .prettierrc       # Code style
-└── README.md
+-
 ````
 in order to run the project you just need to run the html file called fullproj.html as we have combined the entire project there
