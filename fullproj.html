@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StackIt - Minimalist Q&A Platform</title>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3a86ff;
+            --secondary: #ff006e;
+            --accent: #8338ec;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #06d6a0;
+            --warning: #ffd166;
+            --danger: #ef476f;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --border-radius: 8px;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        header {
+            background: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .logo i {
+            color: var(--accent);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        .nav-link:hover {
+            background: var(--light);
+        }
+
+        .nav-link.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2a75f0;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e0355f;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #05c292;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 30px;
+            padding: 30px 0;
+        }
+
+        .content {
+            flex: 1;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            height: fit-content;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .question-list, .answer-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .question-item, .answer-item {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .question-item:hover, .answer-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--primary);
+            display: block;
+            text-decoration: none;
+        }
+
+        .question-content {
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .question-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: var(--light);
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .votes {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+        }
+
+        .vote-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: var(--transition);
+        }
+
+        .vote-btn:hover {
+            color: var(--primary);
+        }
+
+        .accepted {
+            color: var(--success);
+        }
+
+        .editor-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--light-gray);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .ql-toolbar {
+            border-top-left-radius: var(--border-radius);
+            border-top-right-radius: var(--border-radius);
+        }
+
+        .ql-container {
+            border-bottom-left-radius: var(--border-radius);
+            border-bottom-right-radius: var(--border-radius);
+            height: 200px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--primary);
+        }
+
+        .profile-info h2 {
+            margin-bottom: 5px;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .stat {
+            background: var(--light);
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .notification {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-bottom: 1px solid var(--light-gray);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .notification:hover {
+            background: var(--light);
+        }
+
+        .notification.unread {
+            background: #e6f7ff;
+        }
+
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-time {
+            color: var(--gray);
+            font-size: 0.8rem;
+        }
+
+        .admin-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .admin-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            transition: var(--transition);
+        }
+
+        .admin-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .admin-card h3 {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .ban-btn {
+            color: var(--danger);
+        }
+
+        .ban-btn:hover {
+            background: rgba(239, 71, 111, 0.1);
+        }
+
+        .promote-btn {
+            color: var(--success);
+        }
+
+        .promote-btn:hover {
+            background: rgba(6, 214, 160, 0.1);
+        }
+
+        footer {
+            background: white;
+            padding: 30px 0;
+            margin-top: 50px;
+            border-top: 1px solid var(--light-gray);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .footer-link {
+            color: var(--gray);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-link:hover {
+            color: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-links {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .footer-links {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Mock data for initial state
+        const mockQuestions = [
+            {
+                id: 1,
+                title: "How to center a div with CSS?",
+                content: "I've been trying to center a div both horizontally and vertically but nothing seems to work. What's the best approach?",
+                tags: ["CSS", "Frontend"],
+                author: "john_doe",
+                votes: 15,
+                answers: 7,
+                createdAt: "2023-05-15",
+                acceptedAnswerId: 3
+            },
+            {
+                id: 2,
+                title: "Best practices for REST API authentication",
+                content: "What are the current best practices for implementing authentication in a REST API? Should I use JWT, OAuth, or something else?",
+                tags: ["API", "Authentication", "Backend"],
+                author: "jane_smith",
+                votes: 24,
+                answers: 5,
+                createdAt: "2023-05-14"
+            },
+            {
+                id: 3,
+                title: "React hooks vs class components",
+                content: "Is it better to use hooks or class components in new React projects? What are the main advantages of hooks?",
+                tags: ["React", "JavaScript"],
+                author: "dev_guru",
+                votes: 32,
+                answers: 12,
+                createdAt: "2023-05-12",
+                acceptedAnswerId: 8
+            }
+        ];
+
+        const mockAnswers = [
+            {
+                id: 1,
+                questionId: 1,
+                content: "You can use flexbox: <code>display: flex; justify-content: center; align-items: center;</code>",
+                author: "css_expert",
+                votes: 8,
+                createdAt: "2023-05-15"
+            },
+            {
+                id: 2,
+                questionId: 1,
+                content: "Another option is to use CSS grid: <code>display: grid; place-items: center;</code>",
+                author: "frontend_dev",
+                votes: 5,
+                createdAt: "2023-05-15"
+            },
+            {
+                id: 3,
+                questionId: 1,
+                content: "For simple centering, you can use: <code>position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);</code>",
+                author: "ui_designer",
+                votes: 15,
+                createdAt: "2023-05-16",
+                accepted: true
+            }
+        ];
+
+        const mockUsers = [
+            { id: 1, username: "john_doe", email: "john@example.com", isAdmin: false },
+            { id: 2, username: "jane_smith", email: "jane@example.com", isAdmin: false },
+            { id: 3, username: "admin_user", email: "admin@example.com", isAdmin: true }
+        ];
+
+        const mockTags = [
+            { id: 1, name: "JavaScript", count: 45 },
+            { id: 2, name: "React", count: 32 },
+            { id: 3, name: "Python", count: 28 },
+            { id: 4, name: "CSS", count: 22 },
+            { id: 5, name: "API", count: 18 }
+        ];
+
+        const mockNotifications = [
+            { id: 1, content: "Your question has a new answer", read: false, createdAt: "2 hours ago" },
+            { id: 2, content: "Jane Smith upvoted your answer", read: true, createdAt: "1 day ago" },
+            { id: 3, content: "Your answer was accepted", read: false, createdAt: "3 days ago" }
+        ];
+
+        // Main App Component
+        class App extends React.Component {
+            state = {
+                currentUser: null,
+                questions: mockQuestions,
+                answers: mockAnswers,
+                users: mockUsers,
+                tags: mockTags,
+                notifications: mockNotifications,
+                view: 'home',
+                currentQuestion: null,
+                searchQuery: ''
+            };
+
+            handleLogin = (user) => {
+                this.setState({ currentUser: user });
+            };
+
+            handleLogout = () => {
+                this.setState({ currentUser: null, view: 'home' });
+            };
+
+            handleRegister = (user) => {
+                const newUser = { ...user, id: this.state.users.length + 1, isAdmin: false };
+                this.setState(prevState => ({
+                    users: [...prevState.users, newUser],
+                    currentUser: newUser
+                }));
+            };
+
+            handleViewChange = (view, question = null) => {
+                this.setState({ view, currentQuestion: question });
+            };
+
+            handleAskQuestion = (question) => {
+                const newQuestion = {
+                    ...question,
+                    id: this.state.questions.length + 1,
+                    author: this.state.currentUser.username,
+                    votes: 0,
+                    answers: 0,
+                    createdAt: new Date().toISOString().split('T')[0]
+                };
+                
+                this.setState(prevState => ({
+                    questions: [newQuestion, ...prevState.questions],
+                    view: 'home'
+                }));
+            };
+
+            handlePostAnswer = (questionId, content) => {
+                const newAnswer = {
+                    id: this.state.answers.length + 1,
+                    questionId,
+                    content,
+                    author: this.state.currentUser.username,
+                    votes: 0,
+                    createdAt: new Date().toISOString().split('T')[0]
+                };
+                
+                // Update question's answer count
+                const updatedQuestions = this.state.questions.map(q => {
+                    if (q.id === questionId) {
+                        return { ...q, answers: q.answers + 1 };
+                    }
+                    return q;
+                });
+                
+                this.setState(prevState => ({
+                    answers: [...prevState.answers, newAnswer],
+                    questions: updatedQuestions,
+                    view: 'question',
+                    currentQuestion: updatedQuestions.find(q => q.id === questionId)
+                }));
+                
+                // Add notification
+                const questionAuthor = this.state.questions.find(q => q.id === questionId).author;
+                if (questionAuthor !== this.state.currentUser.username) {
+                    const newNotification = {
+                        id: this.state.notifications.length + 1,
+                        content: `New answer to your question: ${this.state.questions.find(q => q.id === questionId).title}`,
+                        read: false,
+                        createdAt: "Just now"
+                    };
+                    
+                    this.setState(prevState => ({
+                        notifications: [newNotification, ...prevState.notifications]
+                    }));
+                }
+            };
+
+            handleVote = (type, id, isQuestion) => {
+                if (isQuestion) {
+                    const updatedQuestions = this.state.questions.map(q => {
+                        if (q.id === id) {
+                            return { ...q, votes: type === 'up' ? q.votes + 1 : q.votes - 1 };
+                        }
+                        return q;
+                    });
+                    this.setState({ questions: updatedQuestions });
+                } else {
+                    const updatedAnswers = this.state.answers.map(a => {
+                        if (a.id === id) {
+                            return { ...a, votes: type === 'up' ? a.votes + 1 : a.votes - 1 };
+                        }
+                        return a;
+                    });
+                    this.setState({ answers: updatedAnswers });
+                }
+            };
+
+            handleAcceptAnswer = (answerId) => {
+                const answer = this.state.answers.find(a => a.id === answerId);
+                const questionId = answer.questionId;
+                
+                const updatedAnswers = this.state.answers.map(a => {
+                    if (a.id === answerId) {
+                        return { ...a, accepted: true };
+                    } else if (a.questionId === questionId && a.accepted) {
+                        return { ...a, accepted: false };
+                    }
+                    return a;
+                });
+                
+                const updatedQuestions = this.state.questions.map(q => {
+                    if (q.id === questionId) {
+                        return { ...q, acceptedAnswerId: answerId };
+                    }
+                    return q;
+                });
+                
+                this.setState({
+                    answers: updatedAnswers,
+                    questions: updatedQuestions,
+                    currentQuestion: updatedQuestions.find(q => q.id === questionId)
+                });
+            };
+
+            handleSearch = (query) => {
+                this.setState({ searchQuery: query, view: 'home' });
+            };
+
+            markNotificationAsRead = (id) => {
+                const updatedNotifications = this.state.notifications.map(n => {
+                    if (n.id === id) {
+                        return { ...n, read: true };
+                    }
+                    return n;
+                });
+                this.setState({ notifications: updatedNotifications });
+            };
+
+            render() {
+                const { currentUser, view, questions, answers, currentQuestion, tags, notifications, searchQuery } = this.state;
+                
+                // Filter questions based on search
+                const filteredQuestions = questions.filter(q => 
+                    q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    q.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    q.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+                );
+                
+                return (
+                    <div>
+                        <Header 
+                            currentUser={currentUser} 
+                            onLogout={this.handleLogout}
+                            onViewChange={this.handleViewChange}
+                            onSearch={this.handleSearch}
+                            notifications={notifications}
+                            onNotificationClick={this.markNotificationAsRead}
+                        />
+                        
+                        <div className="container">
+                            <div className="main-content">
+                                <div className="content">
+                                    {view === 'home' && (
+                                        <HomeView 
+                                            questions={filteredQuestions} 
+                                            currentUser={currentUser}
+                                            onViewChange={this.handleViewChange}
+                                        />
+                                    )}
+                                    
+                                    {view === 'ask' && (
+                                        <AskQuestionView 
+                                            currentUser={currentUser} 
+                                            onAskQuestion={this.handleAskQuestion}
+                                            onViewChange={this.handleViewChange}
+                                            tags={tags}
+                                        />
+                                    )}
+                                    
+                                    {view === 'question' && currentQuestion && (
+                                        <QuestionDetailView 
+                                            question={currentQuestion} 
+                                            answers={answers.filter(a => a.questionId === currentQuestion.id)}
+                                            currentUser={currentUser}
+                                            onVote={this.handleVote}
+                                            onPostAnswer={this.handlePostAnswer}
+                                            onAcceptAnswer={this.handleAcceptAnswer}
+                                            onViewChange={this.handleViewChange}
+                                        />
+                                    )}
+                                    
+                                    {view === 'profile' && (
+                                        <ProfileView 
+                                            currentUser={currentUser} 
+                                            questions={questions.filter(q => q.author === currentUser?.username)}
+                                            answers={answers.filter(a => a.author === currentUser?.username)}
+                                        />
+                                    )}
+                                    
+                                    {view === 'notifications' && (
+                                        <NotificationsView 
+                                            notifications={notifications}
+                                            onNotificationClick={this.markNotificationAsRead}
+                                        />
+                                    )}
+                                    
+                                    {view === 'admin' && (
+                                        <AdminPanelView 
+                                            users={this.state.users}
+                                            questions={questions}
+                                        />
+                                    )}
+                                </div>
+                                
+                                <div className="sidebar">
+                                    {view !== 'admin' && (
+                                        <Sidebar 
+                                            currentUser={currentUser} 
+                                            onViewChange={this.handleViewChange}
+                                            tags={tags}
+                                            onSearch={this.handleSearch}
+                                            questions={questions}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {!currentUser && view !== 'login' && view !== 'register' && (
+                            <AuthModal 
+                                onLogin={this.handleLogin} 
+                                onRegister={this.handleRegister} 
+                                onViewChange={this.handleViewChange}
+                            />
+                        )}
+                        
+                        <Footer />
+                    </div>
+                );
+            }
+        }
+
+        // Header Component
+        class Header extends React.Component {
+            state = {
+                showNotifications: false,
+                searchTerm: ''
+            };
+
+            handleSearch = (e) => {
+                e.preventDefault();
+                this.props.onSearch(this.state.searchTerm);
+            };
+
+            render() {
+                const { currentUser, notifications, onNotificationClick } = this.props;
+                const unreadCount = notifications.filter(n => !n.read).length;
+                
+                return (
+                    <header>
+                        <div className="container">
+                            <div className="navbar">
+                                <a href="#" className="logo" onClick={(e) => { e.preventDefault(); this.props.onViewChange('home'); }}>
+                                    <i className="fas fa-brain"></i> StackIt
+                                </a>
+                                
+                                <div className="nav-links">
+                                    <a href="#" className="nav-link active" onClick={(e) => { e.preventDefault(); this.props.onViewChange('home'); }}>Home</a>
+                                    <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); this.props.onViewChange('ask'); }}>Ask Question</a>
+                                    
+                                    <form onSubmit={this.handleSearch} style={{ display: 'flex', gap: '10px' }}>
+                                        <input 
+                                            type="text" 
+                                            placeholder="Search..." 
+                                            className="form-control"
+                                            value={this.state.searchTerm}
+                                            onChange={(e) => this.setState({ searchTerm: e.target.value })}
+                                            style={{ width: '250px' }}
+                                        />
+                                        <button type="submit" className="btn btn-outline">
+                                            <i className="fas fa-search"></i>
+                                        </button>
+                                    </form>
+                                    
+                                    {currentUser ? (
+                                        <div style={{ position: 'relative', display: 'flex', gap: '15px' }}>
+                                            <button 
+                                                className="nav-link" 
+                                                onClick={() => this.setState({ showNotifications: !this.state.showNotifications })}
+                                                style={{ position: 'relative' }}
+                                            >
+                                                <i className="fas fa-bell"></i>
+                                                {unreadCount > 0 && (
+                                                    <span style={{
+                                                        position: 'absolute',
+                                                        top: '-5px',
+                                                        right: '-5px',
+                                                        backgroundColor: 'var(--danger)',
+                                                        color: 'white',
+                                                        borderRadius: '50%',
+                                                        width: '20px',
+                                                        height: '20px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        fontSize: '0.7rem'
+                                                    }}>
+                                                        {unreadCount}
+                                                    </span>
+                                                )}
+                                            </button>
+                                            
+                                            <a 
+                                                href="#" 
+                                                className="nav-link" 
+                                                onClick={(e) => { e.preventDefault(); this.props.onViewChange('profile'); }}
+                                            >
+                                                <i className="fas fa-user"></i> {currentUser.username}
+                                            </a>
+                                            
+                                            {currentUser.isAdmin && (
+                                                <a 
+                                                    href="#" 
+                                                    className="nav-link" 
+                                                    onClick={(e) => { e.preventDefault(); this.props.onViewChange('admin'); }}
+                                                >
+                                                    <i className="fas fa-shield-alt"></i> Admin
+                                                </a>
+                                            )}
+                                            
+                                            <button className="btn btn-outline" onClick={this.props.onLogout}>
+                                                Logout
+                                            </button>
+                                            
+                                            {this.state.showNotifications && (
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    top: '40px',
+                                                    right: 0,
+                                                    width: '350px',
+                                                    backgroundColor: 'white',
+                                                    borderRadius: 'var(--border-radius)',
+                                                    boxShadow: 'var(--shadow)',
+                                                    zIndex: 1000
+                                                }}>
+                                                    <div className="card-header">
+                                                        <h3>Notifications</h3>
+                                                        <a 
+                                                            href="#" 
+                                                            onClick={(e) => { 
+                                                                e.preventDefault(); 
+                                                                this.props.onViewChange('notifications'); 
+                                                                this.setState({ showNotifications: false });
+                                                            }}
+                                                        >
+                                                            See All
+                                                        </a>
+                                                    </div>
+                                                    <div>
+                                                        {notifications.slice(0, 3).map(notification => (
+                                                            <div 
+                                                                key={notification.id} 
+                                                                className={`notification ${notification.read ? '' : 'unread'}`}
+                                                                onClick={() => onNotificationClick(notification.id)}
+                                                            >
+                                                                <div className="notification-icon">
+                                                                    <i className="fas fa-bell"></i>
+                                                                </div>
+                                                                <div className="notification-content">
+                                                                    {notification.content}
+                                                                </div>
+                                                                <div className="notification-time">
+                                                                    {notification.createdAt}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <button 
+                                                className="btn btn-outline" 
+                                                onClick={() => this.props.onViewChange('login')}
+                                            >
+                                                Login
+                                            </button>
+                                            <button 
+                                                className="btn btn-primary" 
+                                                onClick={() => this.props.onViewChange('register')}
+                                            >
+                                                Sign Up
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                );
+            }
+        }
+
+        // Sidebar Component
+        class Sidebar extends React.Component {
+            render() {
+                const { tags, currentUser, onViewChange, questions } = this.props;
+                
+                return (
+                    <div>
+                        {currentUser ? (
+                            <div className="card">
+                                <div className="card-header">
+                                    <h3>Your Stats</h3>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+                                    <div className="stat">
+                                        <div className="stat-value">12</div>
+                                        <div className="stat-label">Questions</div>
+                                    </div>
+                                    <div className="stat">
+                                        <div className="stat-value">45</div>
+                                        <div className="stat-label">Answers</div>
+                                    </div>
+                                    <div className="stat">
+                                        <div className="stat-value">320</div>
+                                        <div className="stat-label">Reputation</div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="card">
+                                <h3 style={{ marginBottom: '15px' }}>Join StackIt Community</h3>
+                                <p style={{ marginBottom: '15px' }}>Ask questions, share knowledge, and connect with developers.</p>
+                                <button 
+                                    className="btn btn-primary" 
+                                    style={{ width: '100%' }}
+                                    onClick={() => onViewChange('register')}
+                                >
+                                    Sign Up
+                                </button>
+                            </div>
+                        )}
+                        
+                        <div className="card">
+                            <div className="card-header">
+                                <h3>Popular Tags</h3>
+                            </div>
+                            <div className="tags">
+                                {tags.map(tag => (
+                                    <span 
+                                        key={tag.id} 
+                                        className="tag"
+                                        onClick={() => this.props.onSearch(tag.name)}
+                                        style={{ cursor: 'pointer' }}
+                                    >
+                                        {tag.name} <span className="stat-value">{tag.count}</span>
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div className="card">
+                            <div className="card-header">
+                                <h3>Hot Questions</h3>
+                            </div>
+                            <div>
+                                {questions.slice(0, 3).map(question => (
+                                    <div key={question.id} style={{ padding: '10px 0', borderBottom: '1px solid var(--light-gray)' }}>
+                                        <a 
+                                            href="#" 
+                                            style={{ fontWeight: 500 }}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                this.props.onViewChange('question', question);
+                                            }}
+                                        >
+                                            {question.title}
+                                        </a>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
+                                            <span style={{ fontSize: '0.8rem', color: 'var(--gray)' }}>
+                                                {question.votes} votes
+                                            </span>
+                                            <span style={{ fontSize: '0.8rem', color: 'var(--gray)' }}>
+                                                {question.answers} answers
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+        }
+
+        // Home View Component
+        class HomeView extends React.Component {
+            render() {
+                const { questions, currentUser, onViewChange } = this.props;
+                
+                return (
+                    <div>
+                        <div className="card">
+                            <div className="card-header">
+                                <h2 className="card-title">All Questions</h2>
+                                <button 
+                                    className="btn btn-primary"
+                                    onClick={() => onViewChange('ask')}
+                                    disabled={!currentUser}
+                                >
+                                    <i className="fas fa-plus"></i> Ask Question
+                                </button>
+                            </div>
+                            
+                            <div className="question-list">
+                                {questions.map(question => (
+                                    <div key={question.id} className="question-item">
+                                        <div style={{ display: 'flex', gap: '20px' }}>
+                                            <div style={{ textAlign: 'center', minWidth: '80px' }}>
+                                                <div className="votes">{question.votes}</div>
+                                                <div style={{ fontSize: '0.9rem', color: 'var(--gray)' }}>votes</div>
+                                            </div>
+                                            <div style={{ textAlign: 'center', minWidth: '80px' }}>
+                                                <div className="votes" style={{ color: question.acceptedAnswerId ? 'var(--success)' : 'inherit' }}>{question.answers}</div>
+                                                <div style={{ fontSize: '0.9rem', color: 'var(--gray)' }}>answers</div>
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <a 
+                                                    href="#" 
+                                                    className="question-title"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        this.props.onViewChange('question', question);
+                                                    }}
+                                                >
+                                                    {question.title}
+                                                </a>
+                                                <div className="question-content" dangerouslySetInnerHTML={{ __html: question.content }}></div>
+                                                <div className="question-meta">
+                                                    <div className="tags">
+                                                        {question.tags.map((tag, index) => (
+                                                            <span key={index} className="tag">{tag}</span>
+                                                        ))}
+                                                    </div>
+                                                    <div style={{ color: 'var(--gray)', fontSize: '0.9rem' }}>
+                                                        asked by <span style={{ color: 'var(--primary)', fontWeight: 500 }}>{question.author}</span> on {question.createdAt}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+        }
+
+        // Ask Question View Component
+        class AskQuestionView extends React.Component {
+            state = {
+                title: '',
+                content: '',
+                tags: '',
+                editor: null
+            };
+
+            handleSubmit = (e) => {
+                e.preventDefault();
+                const { title, tags } = this.state;
+                const questionContent = "<p>Your question content here</p>";
+                
+                if (!title || !questionContent) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+                
+                this.props.onAskQuestion({
+                    title,
+                    content: questionContent,
+                    tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+                });
+            };
+
+            render() {
+                const { title, tags } = this.state;
+                
+                return (
+                    <div>
+                        <div className="card">
+                            <div className="card-header">
+                                <h2 className="card-title">Ask a Question</h2>
+                            </div>
+                            
+                            <form onSubmit={this.handleSubmit}>
+                                <div className="form-group">
+                                    <label htmlFor="title">Title</label>
+                                    <input 
+                                        type="text" 
+                                        id="title" 
+                                        className="form-control" 
+                                        placeholder="What's your programming question?" 
+                                        value={title}
+                                        onChange={(e) => this.setState({ title: e.target.value })}
+                                    />
+                                    <small style={{ color: 'var(--gray)' }}>Be specific and imagine you're asking a question to another person</small>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="content">Details</label>
+                                    <div style={{ 
+                                        backgroundColor: 'white', 
+                                        borderRadius: 'var(--border-radius)',
+                                        border: '1px solid #ccc',
+                                        minHeight: '300px',
+                                        padding: '15px'
+                                    }}>
+                                        <p>Rich text editor would appear here (Quill.js)</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="tags">Tags</label>
+                                    <input 
+                                        type="text" 
+                                        id="tags" 
+                                        className="form-control" 
+                                        placeholder="Add tags (e.g., javascript, react, css)" 
+                                        value={tags}
+                                        onChange={(e) => this.setState({ tags: e.target.value })}
+                                    />
+                                    <small style={{ color: 'var(--gray)' }}>Add up to 5 tags to describe what your question is about</small>
+                                </div>
+                                
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                                    <button 
+                                        type="button" 
+                                        className="btn btn-outline"
+                                        onClick={() => this.props.onViewChange('home')}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="btn btn-primary">Post Question</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                );
+            }
+        }
+
+        // Question Detail View Component
+        class QuestionDetailView extends React.Component {
+            state = {
+                answerContent: ''
+            };
+
+            handlePostAnswer = (e) => {
+                e.preventDefault();
+                const { answerContent } = this.state;
+                
+                if (!answerContent) {
+                    alert('Please write your answer');
+                    return;
+                }
+                
+                this.props.onPostAnswer(this.props.question.id, answerContent);
+                this.setState({ answerContent: '' });
+            };
+
+            render() {
+                const { question, answers, currentUser, onVote, onAcceptAnswer } = this.props;
+                const acceptedAnswer = answers.find(a => a.accepted);
+                
+                return (
+                    <div>
+                        <div className="question-item">
+                            <div style={{ display: 'flex', gap: '20px' }}>
+                                <div style={{ textAlign: 'center', minWidth: '80px' }}>
+                                    <button 
+                                        className="vote-btn" 
+                                        onClick={() => onVote('up', question.id, true)}
+                                        disabled={!currentUser}
+                                    >
+                                        <i className="fas fa-arrow-up"></i>
+                                    </button>
+                                    <div className="votes">{question.votes}</div>
+                                    <button 
+                                        className="vote-btn" 
+                                        onClick={() => onVote('down', question.id, true)}
+                                        disabled={!currentUser}
+                                    >
+                                        <i className="fas fa-arrow-down"></i>
+                                    </button>
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <h1 className="question-title">{question.title}</h1>
+                                    <div className="question-content" dangerouslySetInnerHTML={{ __html: question.content }}></div>
+                                    <div className="question-meta">
+                                        <div className="tags">
+                                            {question.tags.map((tag, index) => (
+                                                <span key={index} className="tag">{tag}</span>
+                                            ))}
+                                        </div>
+                                        <div style={{ color: 'var(--gray)', fontSize: '0.9rem' }}>
+                                            asked by <span style={{ color: 'var(--primary)', fontWeight: 500 }}>{question.author}</span> on {question.createdAt}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="card-header">
+                            <h2>{answers.length} Answers</h2>
+                        </div>
+                        
+                        <div className="answer-list">
+                            {answers.map(answer => (
+                                <div 
+                                    key={answer.id} 
+                                    className={`answer-item ${answer.accepted ? 'accepted' : ''}`}
+                                    style={{ borderLeft: answer.accepted ? '4px solid var(--success)' : 'none' }}
+                                >
+                                    <div style={{ display: 'flex', gap: '20px' }}>
+                                        <div style={{ textAlign: 'center', minWidth: '80px' }}>
+                                            <button 
+                                                className="vote-btn" 
+                                                onClick={() => onVote('up', answer.id, false)}
+                                                disabled={!currentUser}
+                                            >
+                                                <i className="fas fa-arrow-up"></i>
+                                            </button>
+                                            <div className="votes" style={{ color: answer.accepted ? 'var(--success)' : 'inherit' }}>{answer.votes}</div>
+                                            <button 
+                                                className="vote-btn" 
+                                                onClick={() => onVote('down', answer.id, false)}
+                                                disabled={!currentUser}
+                                            >
+                                                <i className="fas fa-arrow-down"></i>
+                                            </button>
+                                            
+                                            {currentUser && currentUser.username === question.author && !acceptedAnswer && (
+                                                <button 
+                                                    className="vote-btn" 
+                                                    style={{ marginTop: '10px', color: 'var(--gray)' }}
+                                                    onClick={() => onAcceptAnswer(answer.id)}
+                                                    title="Mark as accepted answer"
+                                                >
+                                                    <i className="far fa-check-circle"></i>
+                                                </button>
+                                            )}
+                                            
+                                            {answer.accepted && (
+                                                <div style={{ color: 'var(--success)', marginTop: '10px' }} title="Accepted answer">
+                                                    <i className="fas fa-check-circle"></i>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <div dangerouslySetInnerHTML={{ __html: answer.content }}></div>
+                                            <div className="question-meta">
+                                                <div style={{ color: 'var(--gray)', fontSize: '0.9rem' }}>
+                                                    answered by <span style={{ color: 'var(--primary)', fontWeight: 500 }}>{answer.author}</span> on {answer.createdAt}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        
+                        {currentUser && (
+                            <div className="card">
+                                <div className="card-header">
+                                    <h2>Your Answer</h2>
+                                </div>
+                                <form onSubmit={this.handlePostAnswer}>
+                                    <div className="form-group">
+                                        <textarea 
+                                            className="form-control" 
+                                            placeholder="Write your answer here..."
+                                            value={this.state.answerContent}
+                                            onChange={(e) => this.setState({ answerContent: e.target.value })}
+                                            rows={6}
+                                        ></textarea>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                        <button type="submit" className="btn btn-primary">Post Answer</button>
+                                    </div>
+                                </form>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+        }
+
+        // Profile View Component
+        class ProfileView extends React.Component {
+            render() {
+                const { currentUser, questions, answers } = this.props;
+                
+                if (!currentUser) return null;
+                
+                return (
+                    <div>
+                        <div className="card">
+                            <div className="profile-header">
+                                <div className="avatar">
+                                    <i className="fas fa-user"></i>
+                                </div>
+                                <div className="profile-info">
+                                    <h2>{currentUser.username}</h2>
+                                    <p>{currentUser.email}</p>
+                                    {currentUser.isAdmin && (
+                                        <span className="tag" style={{ backgroundColor: 'var(--accent)', color: 'white' }}>Admin</span>
+                                    )}
+                                    
+                                    <div className="profile-stats">
+                                        <div className="stat">
+                                            <div className="stat-value">{questions.length}</div>
+                                            <div className="stat-label">Questions</div>
+                                        </div>
+                                        <div className="stat">
+                                            <div className="stat-value">{answers.length}</div>
+                                            <div className="stat-label">Answers</div>
+                                        </div>
+                                        <div className="stat">
+                                            <div className="stat-value">320</div>
+                                            <div className="stat-label">Reputation</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="card">
+                            <div className="card-header">
+                                <h3>Your Questions</h3>
+                            </div>
+                            <div className="question-list">
+                                {questions.map(question => (
+                                    <div key={question.id} className="question-item">
+                                        <a 
+                                            href="#" 
+                                            className="question-title"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                this.props.onViewChange('question', question);
+                                            }}
+                                        >
+                                            {question.title}
+                                        </a>
+                                        <div className="question-content" dangerouslySetInnerHTML={{ __html: question.content.substring(0, 200) + '...' }}></div>
+                                        <div className="question-meta">
+                                            <div className="tags">
+                                                {question.tags.map((tag, index) => (
+                                                    <span key={index} className="tag">{tag}</span>
+                                                ))}
+                                            </div>
+                                            <div style={{ color: 'var(--gray)', fontSize: '0.9rem' }}>
+                                                {question.votes} votes • {question.answers} answers • {question.createdAt}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div className="card">
+                            <div className="card-header">
+                                <h3>Your Answers</h3>
+                            </div>
+                            <div className="answer-list">
+                                {answers.map(answer => (
+                                    <div key={answer.id} className="answer-item">
+                                        <div dangerouslySetInnerHTML={{ __html: answer.content.substring(0, 200) + '...' }}></div>
+                                        <div className="question-meta">
+                                            <div style={{ color: 'var(--gray)', fontSize: '0.9rem' }}>
+                                                {answer.votes} votes • {answer.createdAt}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+        }
+
+        // Notifications View Component
+        class NotificationsView extends React.Component {
+            render() {
+                const { notifications, onNotificationClick } = this.props;
+                
+                return (
+                    <div className="card">
+                        <div className="card-header">
+                            <h2>Notifications</h2>
+                        </div>
+                        <div>
+                            {notifications.length > 0 ? (
+                                notifications.map(notification => (
+                                    <div 
+                                        key={notification.id} 
+                                        className={`notification ${notification.read ? '' : 'unread'}`}
+                                        onClick={() => onNotificationClick(notification.id)}
+                                    >
+                                        <div className="notification-icon">
+                                            <i className="fas fa-bell"></i>
+                                        </div>
+                                        <div className="notification-content">
+                                            {notification.content}
+                                        </div>
+                                        <div className="notification-time">
+                                            {notification.createdAt}
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--gray)' }}>
+                                    <i className="fas fa-bell-slash" style={{ fontSize: '3rem', marginBottom: '15px' }}></i>
+                                    <h3>No notifications</h3>
+                                    <p>You don't have any notifications at this time.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+        }
+
+        // Admin Panel View Component
+        class AdminPanelView extends React.Component {
+            state = {
+                activeTab: 'users'
+            };
+
+            render() {
+                const { users, questions } = this.props;
+                
+                return (
+                    <div>
+                        <div className="card">
+                            <div className="card-header">
+                                <h2>Admin Dashboard</h2>
+                            </div>
+                            
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+                                <button 
+                                    className={`btn ${this.state.activeTab === 'users' ? 'btn-primary' : 'btn-outline'}`}
+                                    onClick={() => this.setState({ activeTab: 'users' })}
+                                >
+                                    Users
+                                </button>
+                                <button 
+                                    className={`btn ${this.state.activeTab === 'content' ? 'btn-primary' : 'btn-outline'}`}
+                                    onClick={() => this.setState({ activeTab: 'content' })}
+                                >
+                                    Content
+                                </button>
+                                <button 
+                                    className={`btn ${this.state.activeTab === 'analytics' ? 'btn-primary' : 'btn-outline'}`}
+                                    onClick={() => this.setState({ activeTab: 'analytics' })}
+                                >
+                                    Analytics
+                                </button>
+                            </div>
+                            
+                            {this.state.activeTab === 'users' && (
+                                <div className="admin-panel">
+                                    <div className="admin-card">
+                                        <h3>All Users ({users.length})</h3>
+                                        <div>
+                                            {users.map(user => (
+                                                <div key={user.id} className="user-item">
+                                                    <div className="user-avatar">
+                                                        <i className="fas fa-user"></i>
+                                                    </div>
+                                                    <div className="user-info">
+                                                        <div style={{ fontWeight: 500 }}>{user.username}</div>
+                                                        <div style={{ fontSize: '0.8rem', color: 'var(--gray)' }}>{user.email}</div>
+                                                    </div>
+                                                    <div className="user-actions">
+                                                        {!user.isAdmin && (
+                                                            <button className="action-btn promote-btn" title="Make Admin">
+                                                                <i className="fas fa-crown"></i>
+                                                            </button>
+                                                        )}
+                                                        {!user.banned && (
+                                                            <button className="action-btn ban-btn" title="Ban User">
+                                                                <i className="fas fa-ban"></i>
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="admin-card">
+                                        <h3>Recent Activity</h3>
+                                        <p>Admin activity log will appear here...</p>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {this.state.activeTab === 'content' && (
+                                <div>
+                                    <div className="admin-card">
+                                        <h3>Questions ({questions.length})</h3>
+                                        <p>Content moderation tools will appear here...</p>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {this.state.activeTab === 'analytics' && (
+                                <div>
+                                    <div className="admin-card">
+                                        <h3>Platform Analytics</h3>
+                                        <p>Analytics dashboard will appear here...</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+        }
+
+        // Auth Modal Component
+        class AuthModal extends React.Component {
+            state = {
+                loginEmail: '',
+                loginPassword: '',
+                registerUsername: '',
+                registerEmail: '',
+                registerPassword: '',
+                activeForm: 'login'
+            };
+
+            handleLogin = (e) => {
+                e.preventDefault();
+                const { loginEmail, loginPassword } = this.state;
+                // In a real app, you would validate credentials
+                this.props.onLogin({ 
+                    id: 1, 
+                    username: loginEmail.split('@')[0], 
+                    email: loginEmail, 
+                    isAdmin: false 
+                });
+                this.props.onViewChange('home');
+            };
+
+            handleRegister = (e) => {
+                e.preventDefault();
+                const { registerUsername, registerEmail, registerPassword } = this.state;
+                this.props.onRegister({ 
+                    username: registerUsername, 
+                    email: registerEmail, 
+                    password: registerPassword 
+                });
+                this.props.onViewChange('home');
+            };
+
+            render() {
+                const { activeForm } = this.state;
+                
+                return (
+                    <div style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000
+                    }}>
+                        <div style={{
+                            backgroundColor: 'white',
+                            borderRadius: 'var(--border-radius)',
+                            boxShadow: 'var(--shadow)',
+                            width: '100%',
+                            maxWidth: '500px',
+                            padding: '30px'
+                        }}>
+                            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                                <h2 style={{ marginBottom: '10px' }}>Join StackIt Community</h2>
+                                <p>Ask questions, share knowledge, and connect with developers.</p>
+                            </div>
+                            
+                            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+                                <button 
+                                    className={`btn ${activeForm === 'login' ? 'btn-primary' : 'btn-outline'}`}
+                                    style={{ borderRadius: 'var(--border-radius) 0 0 var(--border-radius)' }}
+                                    onClick={() => this.setState({ activeForm: 'login' })}
+                                >
+                                    Login
+                                </button>
+                                <button 
+                                    className={`btn ${activeForm === 'register' ? 'btn-primary' : 'btn-outline'}`}
+                                    style={{ borderRadius: '0 var(--border-radius) var(--border-radius) 0' }}
+                                    onClick={() => this.setState({ activeForm: 'register' })}
+                                >
+                                    Register
+                                </button>
+                            </div>
+                            
+                            {activeForm === 'login' ? (
+                                <form onSubmit={this.handleLogin}>
+                                    <div className="form-group">
+                                        <label htmlFor="loginEmail">Email</label>
+                                        <input 
+                                            type="email" 
+                                            id="loginEmail" 
+                                            className="form-control" 
+                                            value={this.state.loginEmail}
+                                            onChange={(e) => this.setState({ loginEmail: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                    
+                                    <div className="form-group">
+                                        <label htmlFor="loginPassword">Password</label>
+                                        <input 
+                                            type="password" 
+                                            id="loginPassword" 
+                                            className="form-control" 
+                                            value={this.state.loginPassword}
+                                            onChange={(e) => this.setState({ loginPassword: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                    
+                                    <button type="submit" className="btn btn-primary" style={{ width: '100%', marginBottom: '15px' }}>
+                                        Login
+                                    </button>
+                                    
+                                    <div style={{ textAlign: 'center' }}>
+                                        <a href="#" style={{ color: 'var(--primary)' }}>Forgot password?</a>
+                                    </div>
+                                </form>
+                            ) : (
+                                <form onSubmit={this.handleRegister}>
+                                    <div className="form-group">
+                                        <label htmlFor="registerUsername">Username</label>
+                                        <input 
+                                            type="text" 
+                                            id="registerUsername" 
+                                            className="form-control" 
+                                            value={this.state.registerUsername}
+                                            onChange={(e) => this.setState({ registerUsername: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                    
+                                    <div className="form-group">
+                                        <label htmlFor="registerEmail">Email</label>
+                                        <input 
+                                            type="email" 
+                                            id="registerEmail" 
+                                            className="form-control" 
+                                            value={this.state.registerEmail}
+                                            onChange={(e) => this.setState({ registerEmail: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                    
+                                    <div className="form-group">
+                                        <label htmlFor="registerPassword">Password</label>
+                                        <input 
+                                            type="password" 
+                                            id="registerPassword" 
+                                            className="form-control" 
+                                            value={this.state.registerPassword}
+                                            onChange={(e) => this.setState({ registerPassword: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                    
+                                    <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
+                                        Create Account
+                                    </button>
+                                </form>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+        }
+
+        // Footer Component
+        function Footer() {
+            return (
+                <footer>
+                    <div className="container">
+                        <div className="footer-content">
+                            <div>
+                                <a href="#" className="logo" style={{ fontSize: '1.5rem' }}>
+                                    <i className="fas fa-brain"></i> StackIt
+                                </a>
+                                <p style={{ marginTop: '10px', color: 'var(--gray)' }}>A minimalist Q&A platform for developers</p>
+                            </div>
+                            
+                            <div className="footer-links">
+                                <a href="#" className="footer-link">About</a>
+                                <a href="#" className="footer-link">Terms</a>
+                                <a href="#" className="footer-link">Privacy</a>
+                                <a href="#" className="footer-link">Contact</a>
+                            </div>
+                        </div>
+                        
+                        <div style={{ marginTop: '20px', textAlign: 'center', color: 'var(--gray)', fontSize: '0.9rem' }}>
+                            &copy; 2023 StackIt. All rights reserved.
+                        </div>
+                    </div>
+                </footer>
+            );
+        }
+
+        // Render the app
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
